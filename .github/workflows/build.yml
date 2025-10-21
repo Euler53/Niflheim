@@ -1,3 +1,4 @@
+
 name: Build C++ Solution
 
 on: [push, pull_request]
@@ -25,8 +26,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: my-build-artifacts
-          path: bin/Release
-
-          path: |
-            RioShiina/x64/Release/ # ビルド成果物が生成されるディレクトリパス
-            # 必要に応じて他のパスも追加
+          path: RioShiina/x64/Release/ # ビルド成果物が生成されるディレクトリパス
