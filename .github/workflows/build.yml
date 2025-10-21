@@ -24,9 +24,9 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: GARbro-Mod-ci-build
-          path: bin/Release
           name: my-build-artifacts
+          path: bin/Release
+
           path: |
             RioShiina/x64/Release/ # ビルド成果物が生成されるディレクトリパス
             # 必要に応じて他のパスも追加
