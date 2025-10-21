@@ -1,4 +1,4 @@
-name: Build C++ Solution (x64 and x86)
+name: Build C++ Solution
 
 on:
   push:
@@ -8,34 +8,27 @@ on:
 
 jobs:
   build:
-    # Windows環境で実行
+    # ビルドにはWindows環境が必要です
     runs-on: windows-latest
-    
-    # ビルドのマトリックスを定義
-    strategy:
-      matrix:
-        platform: [x64, x86] # この配列の各要素に対してジョブが実行される
 
     steps:
-      # 1. リポジトリのソースコードをチェックアウト
+      # 1. リポジトリのソースコードをチェックアウトします
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. MSBuildをPATHに追加
+      # 2. MSBuildをPATHに追加し、コマンドを実行できるようにします
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      # 3. マトリックスのプラットフォームを使用してソリューションをビルド
-      - name: Build solution (${{ matrix.platform }})
-        run: msbuild RioShiina/RioShiina.sln /p:Configuration=Release /p:Platform=${{ matrix.platform }}
+      # 3. 指定されたソリューションファイルをMSBuildでビルドします
+      - name: Build solution
+        run: msbuild RioShiina/RioShiina.sln /p:Configuration=Release /p:Platform=x64
 
-      # 4. マトリックスごとにビルド成果物をアップロード
-      - name: Upload artifact (${{ matrix.platform }})
+      # 4. ビルド成果物をアップロードします
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          # アーティファクト名をプラットフォームごとに区別する
-          name: build-artifacts-${{ matrix.platform }}
-          # アップロードする成果物のパス
-          # 注意: .slnファイルの構成により、x86の出力パスが 'Win32' になる場合があります
-          path: RioShiina/${{ matrix.platform == 'x86' && 'Win32' || matrix.platform }}/Release/*.exe
-          
+          name: my-build-artifacts
+          path: |
+            RioShiina/x64/Release/ # ビルド成果物が生成されるディレクトリパス
+            # 必要に応じて他のパスも追加
