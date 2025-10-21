@@ -1,29 +1,57 @@
+name: Build WARC_unpack for Windows
 
-name: Build C++ Solution
-
-on: [push, pull_request]
+# ワークフローが実行されるトリガーを指定
+on:
+  # mainブランチへのpush時
+  push:
+    branches: [ "main" ]
+  # mainブランチへのpull request時
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
-    # ビルドにはWindows環境が必要です
+    # ビルドを実行する環境として最新のWindowsを指定
     runs-on: windows-latest
 
     steps:
-      # 1. リポジトリのソースコードをチェックアウトします
+      # 1. リポジトリのソースコードをチェックアウト
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. MSBuildをPATHに追加し、コマンドを実行できるようにします
+      # 2. 依存ライブラリ(zlib, libpng)をvcpkgでインストール
+      # vcpkgはC++ライブラリの管理を簡単にするツール
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          # vcpkgのインストール先を指定
+          vcpkgDirectory: ${{ runner.temp }}/vcpkg
+          # vcpkgの安定したバージョンをコミットハッシュで指定
+          vcpkgGitCommitId: '15f69f243b5f7e34f64fd2f7e7598c3501a43657'
+
+      - name: Install dependencies with vcpkg
+        run: |
+          # vcxprojファイルでRelease/Win32構成でリンクされているため、x86-windows-staticを指定
+          vcpkg install zlib:x86-windows-static libpng:x86-windows-static
+        shell: pwsh
+
+      # 3. MSBuild (Visual Studioのビルドツール) をセットアップ
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      # 3. 指定されたソリューションファイルをMSBuildでビルドします
-      - name: Build solution
-        run: msbuild RioShiina/RioShiina.sln /p:Configuration=Release /p:Platform=x64
-
-      # 4. ビルド成果物をアップロードします
+      # 4. MSBuildでプロジェクトをビルド
+      - name: Build with MSBuild
+        run: |
+          msbuild RioShiina\WARC_unpack\WARC_unpack.vcxproj /p:Configuration=Release /p:Platform=Win32 /p:VcpkgEnabled=true /p:VcpkgTriplet=x86-windows-static
+        shell: cmd
+        
+      # 5. ビルド成果物 (exeファイル) をアップロード
+      # このステップにより、ビルド完了後にexeファイルをダウンロードできるようになる
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: my-build-artifacts
-          path: RioShiina/x64/Release/ # ビルド成果物が生成されるディレクトリパス
+          # アップロードするファイルの名前
+          name: WARC_unpack-win32-executable
+          # アップロードするファイルのパス
+          # Release/Win32構成でビルドした場合、exeはこのパスに生成される
+          path: WARC_unpack/Release/WARC_unpack.exe
