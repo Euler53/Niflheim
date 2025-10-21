@@ -1,10 +1,6 @@
 name: Build C++ Solution
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -28,6 +24,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
+          name: GARbro-Mod-ci-build
+          path: bin/Release
           name: my-build-artifacts
           path: |
             RioShiina/x64/Release/ # ビルド成果物が生成されるディレクトリパス
